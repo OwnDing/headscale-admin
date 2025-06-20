@@ -1,17 +1,17 @@
-# gRPC 配置指南
+# gRPC Configuration Guide
 
-## 问题诊断
+## Problem Diagnosis
 
-如果您在测试 gRPC 连接时遇到 "Failed to fetch" 错误，这通常是由以下原因造成的：
+If you encounter "Failed to fetch" errors when testing gRPC connections, this is usually caused by the following reasons:
 
-### 1. Headscale 服务器配置问题
+### 1. Headscale Server Configuration Issues
 
-**问题**: Headscale 默认只提供 gRPC API，不提供 gRPC-Web API
-**解决方案**: 需要配置 gRPC-Web 代理
+**Problem**: Headscale only provides gRPC API by default, not gRPC-Web API
+**Solution**: You need to configure a gRPC-Web proxy
 
-#### 方法 A: 使用 Envoy 代理 (推荐)
+#### Method A: Using Envoy Proxy (Recommended)
 
-创建 `envoy.yaml` 配置文件：
+Create an `envoy.yaml` configuration file:
 
 ```yaml
 static_resources:
@@ -72,23 +72,23 @@ static_resources:
                 port_value: 50443
 ```
 
-启动 Envoy:
+Start Envoy:
 ```bash
 docker run -d -p 8080:8080 -v $(pwd)/envoy.yaml:/etc/envoy/envoy.yaml envoyproxy/envoy:v1.22-latest
 ```
 
-然后在设置中使用：
-- Server Address: `localhost` (或您的服务器地址)
+Then use in settings:
+- Server Address: `localhost` (or your server address)
 - Port: `8080`
-- Enable TLS: `false` (Envoy 处理 TLS)
+- Enable TLS: `false` (Envoy handles TLS)
 
-#### 方法 B: 使用 grpcwebproxy
+#### Method B: Using grpcwebproxy
 
 ```bash
-# 安装 grpcwebproxy
+# Install grpcwebproxy
 go install github.com/improbable-eng/grpc-web/go/grpcwebproxy@latest
 
-# 启动代理
+# Start proxy
 grpcwebproxy \
   --backend_addr=localhost:50443 \
   --run_tls_server=false \
@@ -96,87 +96,87 @@ grpcwebproxy \
   --backend_tls_noverify
 ```
 
-### 2. 网络连接问题
+### 2. Network Connection Issues
 
-**检查项目**:
-- 确保 Headscale 服务器可访问
-- 检查防火墙设置
-- 验证端口是否正确开放
+**Check items**:
+- Ensure Headscale server is accessible
+- Check firewall settings
+- Verify ports are correctly opened
 
-**测试连接**:
+**Test connection**:
 ```bash
-# 测试基本连接
+# Test basic connection
 telnet vpn.ownding.xyz 50443
 
-# 或使用 curl 测试 HTTP 连接
+# Or use curl to test HTTP connection
 curl -v http://vpn.ownding.xyz:8080
 ```
 
-### 3. CORS 问题
+### 3. CORS Issues
 
-如果您看到 CORS 错误，需要在 gRPC-Web 代理中配置 CORS 头。
+If you see CORS errors, you need to configure CORS headers in the gRPC-Web proxy.
 
-### 4. TLS 配置问题
+### 4. TLS Configuration Issues
 
-**如果启用了 TLS**:
-- 确保证书有效
-- 检查证书是否包含正确的域名
-- 考虑在开发环境中暂时禁用 TLS
+**If TLS is enabled**:
+- Ensure certificates are valid
+- Check if certificates contain the correct domain name
+- Consider temporarily disabling TLS in development environment
 
-## 推荐配置
+## Recommended Configuration
 
-### 开发环境
+### Development Environment
 ```
 Server Address: localhost
-Port: 8080 (Envoy 代理端口)
+Port: 8080 (Envoy proxy port)
 Enable TLS: false
 Timeout: 10000ms
-API Key: 您的 Headscale API Key
+API Key: Your Headscale API Key
 ```
 
-### 生产环境
+### Production Environment
 ```
 Server Address: your-headscale-server.com
-Port: 443 (通过反向代理)
+Port: 443 (through reverse proxy)
 Enable TLS: true
 Timeout: 10000ms
-API Key: 您的 Headscale API Key
+API Key: Your Headscale API Key
 ```
 
-## 故障排除步骤
+## Troubleshooting Steps
 
-1. **验证 Headscale 服务器运行状态**
+1. **Verify Headscale Server Running Status**
    ```bash
-   # 检查 gRPC 端口
+   # Check gRPC port
    netstat -tlnp | grep 50443
    ```
 
-2. **测试 REST API 连接**
-   - 确保现有的 REST API 功能正常工作
-   - 这验证了基本的网络连接
+2. **Test REST API Connection**
+   - Ensure existing REST API functionality works properly
+   - This verifies basic network connectivity
 
-3. **检查浏览器开发者工具**
-   - 查看 Network 标签页中的错误详情
-   - 检查 Console 中的 JavaScript 错误
+3. **Check Browser Developer Tools**
+   - View error details in the Network tab
+   - Check JavaScript errors in the Console
 
-4. **逐步测试**
-   - 先测试基本的 HTTP 连接
-   - 再测试 gRPC-Web 代理
-   - 最后测试完整的 gRPC 功能
+4. **Step-by-step Testing**
+   - First test basic HTTP connection
+   - Then test gRPC-Web proxy
+   - Finally test complete gRPC functionality
 
-## 当前实现说明
+## Current Implementation Notes
 
-当前的 gRPC 客户端实现是简化版本，主要用于演示概念。在生产环境中，您需要：
+The current gRPC client implementation is a simplified version, mainly for demonstrating concepts. In production environments, you need:
 
-1. 配置适当的 gRPC-Web 代理
-2. 使用正确的 protobuf 编码
-3. 实现完整的错误处理
-4. 添加重试机制
+1. Configure appropriate gRPC-Web proxy
+2. Use correct protobuf encoding
+3. Implement complete error handling
+4. Add retry mechanisms
 
-## 联系支持
+## Contact Support
 
-如果您仍然遇到问题，请提供以下信息：
-- Headscale 版本
-- 服务器配置
-- 错误消息的完整内容
-- 浏览器开发者工具中的网络请求详情
+If you still encounter issues, please provide the following information:
+- Headscale version
+- Server configuration
+- Complete error message content
+- Network request details from browser developer tools
