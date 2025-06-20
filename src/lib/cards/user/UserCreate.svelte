@@ -27,15 +27,15 @@
 		try {
 			let u;
 
-			// 根据用户需求：只填写用户名时使用 REST API，同时填写用户名和命名空间时使用 gRPC API
+			// Based on user requirements: use REST API when only username is filled, use gRPC API when both username and namespace are filled
 			if (isGrpcConfigured && namespace.trim() !== '') {
-				// 同时填写了用户名和命名空间，使用 gRPC API 创建带 display_name 的用户
+				// Both username and namespace filled, use gRPC API to create user with display_name
 				u = await createUserWithNamespace(App.grpcConfig.value, username, namespace);
-				toastSuccess(`✅ 用户 "${username}" 创建成功！命名空间: "${namespace}" (gRPC)`, toastStore);
+				toastSuccess(`✅ User "${username}" created successfully! Namespace: "${namespace}" (gRPC)`, toastStore);
 			} else {
-				// 只填写了用户名，使用 REST API 进行标准用户创建
+				// Only username filled, use REST API for standard user creation
 				u = await createUser(username);
-				toastSuccess(`✅ 用户 "${username}" 创建成功！(REST API)`, toastStore);
+				toastSuccess(`✅ User "${username}" created successfully! (REST API)`, toastStore);
 			}
 
 			App.users.value.push(u);
@@ -80,9 +80,9 @@
 		{#if isGrpcConfigured}
 			<div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
 				{#if namespace.trim() !== ''}
-					🚀 将通过 gRPC API 创建用户，命名空间设置为 "{namespace}"
+					🚀 Will create user via gRPC API with namespace set to "{namespace}"
 				{:else}
-					ℹ️ 将通过 REST API 创建标准用户（填写命名空间可使用 gRPC API）
+					ℹ️ Will create standard user via REST API (fill namespace to use gRPC API)
 				{/if}
 			</div>
 		{/if}

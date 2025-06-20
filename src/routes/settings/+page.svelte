@@ -97,15 +97,15 @@
 	async function testGrpcConnectionHandler() {
 		loading = true;
 
-		// 先验证配置
+		// Validate configuration first
 		if (!settings.grpc.serverAddress.trim()) {
-			toastError('请先配置服务器地址', ToastStore);
+			toastError('Please configure server address first', ToastStore);
 			loading = false;
 			return;
 		}
 
 		if (!settings.grpc.apiKey.trim()) {
-			toastError('请先配置 gRPC API Key', ToastStore);
+			toastError('Please configure gRPC API Key first', ToastStore);
 			loading = false;
 			return;
 		}
@@ -120,16 +120,16 @@
 
 			if (result.success) {
 				if (result.error) {
-					// 连接成功但有警告
-					toastSuccess(`gRPC 连接成功 (有警告: ${result.error})`, ToastStore);
+					// Connection successful but with warnings
+					toastSuccess(`gRPC connection successful (warning: ${result.error})`, ToastStore);
 				} else {
-					toastSuccess('gRPC 连接测试成功！', ToastStore);
+					toastSuccess('gRPC connection test successful!', ToastStore);
 				}
 			} else {
-				// 提供更具体的错误信息和解决建议
-				let errorMessage = `gRPC 连接失败: ${result.error}`;
+				// Provide more specific error information and solutions
+				let errorMessage = `gRPC connection failed: ${result.error}`;
 				if (result.error?.includes('Failed to fetch')) {
-					errorMessage += '\n\n可能的解决方案:\n1. 检查服务器地址和端口\n2. 确保配置了 gRPC-Web 代理\n3. 检查防火墙设置';
+					errorMessage += '\n\nPossible solutions:\n1. Check server address and port\n2. Ensure gRPC-Web proxy is configured\n3. Check firewall settings';
 				}
 				toastError(errorMessage, ToastStore);
 			}
@@ -140,7 +140,7 @@
 				lastTested: new Date().toISOString(),
 				error: errorMessage,
 			};
-			toastError(`gRPC 连接测试失败: ${errorMessage}`, ToastStore);
+			toastError(`gRPC connection test failed: ${errorMessage}`, ToastStore);
 		} finally {
 			loading = false;
 		}
@@ -287,14 +287,14 @@
 				</p>
 
 				<div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg">
-					<h4 class="font-medium text-blue-900 dark:text-blue-100 mb-2">⚠️ 重要提示</h4>
+					<h4 class="font-medium text-blue-900 dark:text-blue-100 mb-2">⚠️ Important Notice</h4>
 					<p class="text-sm text-blue-800 dark:text-blue-200 mb-2">
-						Headscale 默认只提供 gRPC API，需要配置 gRPC-Web 代理才能从浏览器访问。
+						Headscale only provides gRPC API by default. You need to configure a gRPC-Web proxy to access it from browsers.
 					</p>
 					<p class="text-sm text-blue-800 dark:text-blue-200">
-						推荐使用 Envoy 或 grpcwebproxy 作为代理。
-						<a href="/grpc-help" class="underline font-medium">查看配置帮助</a> 或
-						<a href="/GRPC_SETUP_GUIDE.md" target="_blank" class="underline">详细指南</a>。
+						We recommend using Envoy or grpcwebproxy as proxy.
+						<a href="/grpc-help" class="underline font-medium">View configuration help</a> or
+						<a href="/GRPC_SETUP_GUIDE.md" target="_blank" class="underline">detailed guide</a>.
 					</p>
 				</div>
 
@@ -319,11 +319,11 @@
 									settings.grpc.enableTls = false;
 								}}
 							>
-								本地开发 (Envoy)
+								Local Dev (Envoy)
 							</button>
 						</div>
 						<p class="mt-1 text-xs text-gray-500">
-							如果使用代理，请输入代理服务器地址（如 Envoy 代理地址）
+							If using a proxy, enter the proxy server address (e.g., Envoy proxy address)
 						</p>
 					</div>
 
@@ -391,15 +391,15 @@
 						{#if App.grpcConnectionStatus.value.lastTested}
 							<div class="flex flex-col space-y-1">
 								<span class="text-sm {App.grpcConnectionStatus.value.connected ? 'text-green-600' : 'text-red-600'}">
-									{App.grpcConnectionStatus.value.connected ? '✅ 连接成功' : '❌ 连接失败'}
+									{App.grpcConnectionStatus.value.connected ? '✅ Connected' : '❌ Connection Failed'}
 								</span>
 								{#if App.grpcConnectionStatus.value.error}
 									<div class="text-xs text-gray-600 dark:text-gray-400 max-w-md">
-										错误: {App.grpcConnectionStatus.value.error}
+										Error: {App.grpcConnectionStatus.value.error}
 									</div>
 								{/if}
 								<div class="text-xs text-gray-500">
-									最后测试: {new Date(App.grpcConnectionStatus.value.lastTested).toLocaleString()}
+									Last tested: {new Date(App.grpcConnectionStatus.value.lastTested).toLocaleString()}
 								</div>
 							</div>
 						{/if}

@@ -9,12 +9,12 @@
 
 	async function testBasicConnectivity() {
 		if (!testUrl.trim()) {
-			testResult = '请输入要测试的 URL';
+			testResult = 'Please enter a URL to test';
 			return;
 		}
 
 		testing = true;
-		testResult = '正在测试连接...';
+		testResult = 'Testing connection...';
 
 		try {
 			const response = await fetch(testUrl, {
@@ -23,21 +23,21 @@
 			});
 
 			if (response.ok) {
-				testResult = `✅ 服务器可访问 (状态码: ${response.status})`;
+				testResult = `✅ Server accessible (status: ${response.status})`;
 			} else {
-				testResult = `⚠️ 服务器响应异常 (状态码: ${response.status})`;
+				testResult = `⚠️ Server response error (status: ${response.status})`;
 			}
 		} catch (error) {
 			if (error instanceof Error) {
 				if (error.name === 'AbortError') {
-					testResult = '❌ 连接超时 - 检查服务器地址和网络连接';
+					testResult = '❌ Connection timeout - Check server address and network connection';
 				} else if (error.message.includes('CORS')) {
-					testResult = '⚠️ CORS 错误 - 服务器可能需要配置 CORS 头';
+					testResult = '⚠️ CORS error - Server may need CORS headers configuration';
 				} else {
-					testResult = `❌ 连接失败: ${error.message}`;
+					testResult = `❌ Connection failed: ${error.message}`;
 				}
 			} else {
-				testResult = '❌ 未知错误';
+				testResult = '❌ Unknown error';
 			}
 		} finally {
 			testing = false;
@@ -49,7 +49,7 @@
 		testBasicConnectivity();
 	}
 
-	// Envoy 配置生成器
+	// Envoy configuration generator
 	let envoyConfig = $state({
 		headscaleServer: App.grpcConfig.value.serverAddress || 'vpn.ownding.xyz',
 		headscalePort: 50443,
@@ -116,7 +116,7 @@
 	async function copyToClipboard(text: string) {
 		try {
 			await navigator.clipboard.writeText(text);
-			// 可以添加一个 toast 通知
+			// Could add a toast notification
 		} catch (err) {
 			console.error('Failed to copy: ', err);
 		}
@@ -124,47 +124,47 @@
 </script>
 
 <Page>
-	<PageHeader title="gRPC 配置帮助" />
-	
+	<PageHeader title="gRPC Configuration Help" />
+
 	<div class="max-w-4xl mx-auto p-6 space-y-6">
-		<!-- 当前配置状态 -->
+		<!-- Current Configuration Status -->
 		<div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-			<h2 class="text-xl font-semibold mb-4">当前 gRPC 配置状态</h2>
-			
+			<h2 class="text-xl font-semibold mb-4">Current gRPC Configuration Status</h2>
+
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div class="space-y-2">
 					<div class="flex justify-between">
-						<span class="text-sm font-medium">服务器地址:</span>
+						<span class="text-sm font-medium">Server Address:</span>
 						<span class="text-sm {App.grpcConfig.value.serverAddress ? 'text-green-600' : 'text-red-600'}">
-							{App.grpcConfig.value.serverAddress || '未配置'}
+							{App.grpcConfig.value.serverAddress || 'Not configured'}
 						</span>
 					</div>
 					<div class="flex justify-between">
-						<span class="text-sm font-medium">端口:</span>
+						<span class="text-sm font-medium">Port:</span>
 						<span class="text-sm">{App.grpcConfig.value.port}</span>
 					</div>
 					<div class="flex justify-between">
 						<span class="text-sm font-medium">TLS:</span>
-						<span class="text-sm">{App.grpcConfig.value.enableTls ? '启用' : '禁用'}</span>
+						<span class="text-sm">{App.grpcConfig.value.enableTls ? 'Enabled' : 'Disabled'}</span>
 					</div>
 					<div class="flex justify-between">
 						<span class="text-sm font-medium">API Key:</span>
 						<span class="text-sm {App.grpcConfig.value.apiKey ? 'text-green-600' : 'text-red-600'}">
-							{App.grpcConfig.value.apiKey ? '已配置' : '未配置'}
+							{App.grpcConfig.value.apiKey ? 'Configured' : 'Not configured'}
 						</span>
 					</div>
 				</div>
-				
+
 				<div class="space-y-2">
-					<div class="text-sm font-medium">配置状态:</div>
+					<div class="text-sm font-medium">Configuration Status:</div>
 					<div class="text-sm {App.isGrpcConfigured ? 'text-green-600' : 'text-yellow-600'}">
-						{App.isGrpcConfigured ? '✅ gRPC 已配置' : '⚠️ gRPC 未完全配置'}
+						{App.isGrpcConfigured ? '✅ gRPC Configured' : '⚠️ gRPC Not Fully Configured'}
 					</div>
 					{#if App.grpcConnectionStatus.value.lastTested}
 						<div class="text-sm">
-							<span class="font-medium">最后测试:</span>
+							<span class="font-medium">Last Tested:</span>
 							<span class="{App.grpcConnectionStatus.value.connected ? 'text-green-600' : 'text-red-600'}">
-								{App.grpcConnectionStatus.value.connected ? '成功' : '失败'}
+								{App.grpcConnectionStatus.value.connected ? 'Success' : 'Failed'}
 							</span>
 						</div>
 					{/if}
@@ -172,13 +172,13 @@
 			</div>
 		</div>
 
-		<!-- 连接测试工具 -->
+		<!-- Connection Test Tool -->
 		<div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-			<h2 class="text-xl font-semibold mb-4">连接测试工具</h2>
-			
+			<h2 class="text-xl font-semibold mb-4">Connection Test Tool</h2>
+
 			<div class="space-y-4">
 				<div>
-					<label class="block text-sm font-medium mb-2">测试 URL:</label>
+					<label class="block text-sm font-medium mb-2">Test URL:</label>
 					<div class="flex space-x-2">
 						<input
 							class="flex-1 input"
@@ -191,20 +191,20 @@
 							onclick={testBasicConnectivity}
 							disabled={testing}
 						>
-							{testing ? '测试中...' : '测试连接'}
+							{testing ? 'Testing...' : 'Test Connection'}
 						</button>
 					</div>
 				</div>
 
 				<div class="flex flex-wrap gap-2">
 					<button class="btn btn-sm variant-ghost" onclick={() => setTestUrl('http://localhost:8080')}>
-						本地 Envoy (8080)
+						Local Envoy (8080)
 					</button>
 					<button class="btn btn-sm variant-ghost" onclick={() => setTestUrl('http://localhost:8000')}>
-						本地 grpcwebproxy (8000)
+						Local grpcwebproxy (8000)
 					</button>
 					<button class="btn btn-sm variant-ghost" onclick={() => setTestUrl(`http://${App.grpcConfig.value.serverAddress}:${App.grpcConfig.value.port}`)}>
-						当前配置
+						Current Config
 					</button>
 				</div>
 
@@ -216,14 +216,14 @@
 			</div>
 		</div>
 
-		<!-- Envoy 配置生成器 -->
+		<!-- Envoy Configuration Generator -->
 		<div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-			<h2 class="text-xl font-semibold mb-4">Envoy 配置生成器</h2>
+			<h2 class="text-xl font-semibold mb-4">Envoy Configuration Generator</h2>
 
 			<div class="space-y-4">
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
-						<label class="block text-sm font-medium mb-1">Headscale 服务器地址:</label>
+						<label class="block text-sm font-medium mb-1">Headscale Server Address:</label>
 						<input
 							class="input w-full"
 							type="text"
@@ -232,7 +232,7 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium mb-1">Headscale gRPC 端口:</label>
+						<label class="block text-sm font-medium mb-1">Headscale gRPC Port:</label>
 						<input
 							class="input w-full"
 							type="number"
@@ -241,7 +241,7 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium mb-1">代理监听端口:</label>
+						<label class="block text-sm font-medium mb-1">Proxy Listen Port:</label>
 						<input
 							class="input w-full"
 							type="number"
@@ -253,12 +253,12 @@
 
 				<div>
 					<div class="flex justify-between items-center mb-2">
-						<h3 class="text-lg font-medium">生成的 envoy.yaml 配置:</h3>
+						<h3 class="text-lg font-medium">Generated envoy.yaml Configuration:</h3>
 						<button
 							class="btn btn-sm variant-filled-secondary"
 							onclick={() => copyToClipboard(generatedEnvoyConfig)}
 						>
-							复制配置
+							Copy Configuration
 						</button>
 					</div>
 					<div class="bg-gray-100 dark:bg-gray-700 p-4 rounded text-sm max-h-96 overflow-y-auto">
@@ -267,23 +267,23 @@
 				</div>
 
 				<div class="bg-blue-50 dark:bg-blue-900 p-4 rounded">
-					<h4 class="font-medium text-blue-900 dark:text-blue-100 mb-2">启动步骤:</h4>
+					<h4 class="font-medium text-blue-900 dark:text-blue-100 mb-2">Setup Steps:</h4>
 					<ol class="list-decimal list-inside space-y-1 text-sm text-blue-800 dark:text-blue-200">
-						<li>将上面的配置保存为 <code>envoy.yaml</code></li>
-						<li>运行: <code>docker run -d -p {envoyConfig.proxyPort}:{envoyConfig.proxyPort} -v $(pwd)/envoy.yaml:/etc/envoy/envoy.yaml envoyproxy/envoy:v1.28-latest</code></li>
-						<li>在设置中配置: 服务器地址 <code>localhost</code>, 端口 <code>{envoyConfig.proxyPort}</code>, TLS 禁用</li>
+						<li>Save the above configuration as <code>envoy.yaml</code></li>
+						<li>Run: <code>docker run -d -p {envoyConfig.proxyPort}:{envoyConfig.proxyPort} -v $(pwd)/envoy.yaml:/etc/envoy/envoy.yaml envoyproxy/envoy:v1.28-latest</code></li>
+						<li>Configure in settings: Server address <code>localhost</code>, Port <code>{envoyConfig.proxyPort}</code>, TLS disabled</li>
 					</ol>
 				</div>
 			</div>
 		</div>
 
-		<!-- 配置指南 -->
+		<!-- Configuration Guide -->
 		<div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-			<h2 class="text-xl font-semibold mb-4">其他配置方法</h2>
+			<h2 class="text-xl font-semibold mb-4">Alternative Configuration Methods</h2>
 
 			<div class="space-y-6">
 				<div>
-					<h3 class="text-lg font-medium mb-2">方法 2: 使用 grpcwebproxy</h3>
+					<h3 class="text-lg font-medium mb-2">Method 2: Using grpcwebproxy</h3>
 					<div class="bg-gray-100 dark:bg-gray-700 p-4 rounded text-sm">
 						<pre class="whitespace-pre-wrap">grpcwebproxy \\
   --backend_addr={envoyConfig.headscaleServer}:{envoyConfig.headscalePort} \\
@@ -292,17 +292,17 @@
   --backend_tls_noverify</pre>
 					</div>
 					<p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-						然后在设置中使用: localhost:8000, TLS 禁用
+						Then use in settings: localhost:8000, TLS disabled
 					</p>
 				</div>
 
 				<div>
-					<h3 class="text-lg font-medium mb-2">常见问题</h3>
+					<h3 class="text-lg font-medium mb-2">Common Issues</h3>
 					<ul class="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-400">
-						<li><strong>Failed to fetch:</strong> 通常表示没有配置 gRPC-Web 代理</li>
-						<li><strong>CORS 错误:</strong> 需要在代理中配置 CORS 头</li>
-						<li><strong>连接超时:</strong> 检查服务器地址和端口是否正确</li>
-						<li><strong>401 错误:</strong> 检查 API Key 是否正确</li>
+						<li><strong>Failed to fetch:</strong> Usually indicates no gRPC-Web proxy configured</li>
+						<li><strong>CORS error:</strong> Need to configure CORS headers in proxy</li>
+						<li><strong>Connection timeout:</strong> Check server address and port are correct</li>
+						<li><strong>401 error:</strong> Check if API Key is correct</li>
 					</ul>
 				</div>
 			</div>

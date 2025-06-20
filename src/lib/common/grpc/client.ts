@@ -29,7 +29,7 @@ export class HeadscaleGrpcClient {
                 }
             } catch (error) {
                 debug('Failed to load protobuf definition:', error);
-                throw new Error('无法加载 protobuf 定义文件');
+                throw new Error('Unable to load protobuf definition file');
             }
         }
         return this.protoRoot;
@@ -144,7 +144,7 @@ export class HeadscaleGrpcClient {
 
                         return {
                             success: true,
-                            error: `gRPC 连接成功！找到 ${users.length} 个用户。`,
+                            error: `gRPC connection successful! Found ${users.length} users.`,
                             rawResponse: rawResponseData
                         };
                     } catch (parseError) {
@@ -154,20 +154,20 @@ export class HeadscaleGrpcClient {
 
                         // Provide detailed analysis in error message
                         const errorDetails = [
-                            `解析错误: ${parseError instanceof Error ? parseError.message : 'Unknown'}`,
-                            `响应大小: ${responseData.byteLength} 字节`,
-                            analysis.isLikelyHttp ? '响应似乎是 HTTP 而非 gRPC' : '',
+                            `Parse error: ${parseError instanceof Error ? parseError.message : 'Unknown'}`,
+                            `Response size: ${responseData.byteLength} bytes`,
+                            analysis.isLikelyHttp ? 'Response appears to be HTTP rather than gRPC' : '',
                             ...analysis.recommendations
                         ].filter(Boolean).join('\n');
 
-                        // 尝试不同的解析方法
+                        // Try different parsing methods
                         const fallbackResult = this.tryAlternativeParsingMethods(responseData, ListUsersResponse, parseError);
 
                         if (!fallbackResult.success) {
-                            fallbackResult.error = `${fallbackResult.error}\n\n详细分析:\n${errorDetails}`;
+                            fallbackResult.error = `${fallbackResult.error}\n\nDetailed analysis:\n${errorDetails}`;
                         }
 
-                        // 添加原始响应数据到错误结果
+                        // Add raw response data to error result
                         fallbackResult.rawResponse = rawResponseData;
 
                         return fallbackResult;
@@ -175,48 +175,48 @@ export class HeadscaleGrpcClient {
                 } else if (response.status === 401) {
                     return {
                         success: false,
-                        error: '认证失败：请检查 API Key 是否正确'
+                        error: 'Authentication failed: Please check if API Key is correct'
                     };
                 } else if (response.status === 404) {
                     return {
                         success: false,
-                        error: 'gRPC 服务未找到：请确保 Headscale gRPC 服务正在运行'
+                        error: 'gRPC service not found: Please ensure Headscale gRPC service is running'
                     };
                 } else if (response.status === 415) {
-                    // 415 通常表示内容类型错误，但对于 gRPC 可能是正常的
+                    // 415 usually indicates content type error, but may be normal for gRPC
                     const errorText = await response.text();
                     debug('415 response text:', errorText);
 
                     if (errorText.includes('grpc-status')) {
                         return {
                             success: false,
-                            error: `gRPC 协议错误：${errorText}`
+                            error: `gRPC protocol error: ${errorText}`
                         };
                     } else {
                         return {
                             success: false,
-                            error: '内容类型错误：请确保使用正确的 gRPC-Web 代理配置'
+                            error: 'Content type error: Please ensure correct gRPC-Web proxy configuration'
                         };
                     }
                 } else if (response.status === 502 || response.status === 503) {
                     return {
                         success: false,
-                        error: '服务不可用：Headscale gRPC 服务可能未运行或不可访问'
+                        error: 'Service unavailable: Headscale gRPC service may not be running or accessible'
                     };
                 } else {
                     const errorText = await response.text();
                     debug('Error response text:', errorText);
 
-                    // 检查是否包含 gRPC 错误信息
+                    // Check if contains gRPC error information
                     if (errorText.includes('grpc-status') || errorText.includes('grpc-message')) {
                         return {
                             success: false,
-                            error: `gRPC 错误 ${response.status}: ${errorText}`
+                            error: `gRPC error ${response.status}: ${errorText}`
                         };
                     } else {
                         return {
                             success: false,
-                            error: `HTTP 错误 ${response.status}: ${errorText}`
+                            error: `HTTP error ${response.status}: ${errorText}`
                         };
                     }
                 }
@@ -1278,7 +1278,7 @@ export class HeadscaleGrpcClient {
                 debug('Manual parsing successful, users:', users.length);
                 return {
                     success: true,
-                    error: `gRPC 连接成功！找到 ${users.length} 个用户（手动解析器）。`
+                    error: `gRPC connection successful! Found ${users.length} users (manual parser).`
                 };
             } catch (specializedError) {
                 debug('Manual parsing failed:', specializedError);
@@ -1295,20 +1295,20 @@ export class HeadscaleGrpcClient {
         if (possibleText.includes('grpc-status') || possibleText.includes('grpc-message')) {
             return {
                 success: false,
-                error: `收到 gRPC 错误响应: ${possibleText.substring(0, 100)}`
+                error: `Received gRPC error response: ${possibleText.substring(0, 100)}`
             };
         }
 
         if (possibleText.includes('HTTP/') || possibleText.includes('<html') || possibleText.includes('error')) {
             return {
                 success: false,
-                error: `收到 HTTP 错误响应而非 gRPC 数据: ${possibleText.substring(0, 100)}`
+                error: `Received HTTP error response instead of gRPC data: ${possibleText.substring(0, 100)}`
             };
         }
 
         const methods = [
             {
-                name: '直接手动解析（无帧包装）',
+                name: 'Direct manual parsing (no frame wrapper)',
                 parse: () => {
                     if (responseData.byteLength === 0) {
                         throw new Error('Empty response data');
@@ -1319,7 +1319,7 @@ export class HeadscaleGrpcClient {
                 }
             },
             {
-                name: '跳过前5字节手动解析',
+                name: 'Skip first 5 bytes manual parsing',
                 parse: () => {
                     if (responseData.byteLength <= 5) {
                         throw new Error('Response too short for 5-byte skip');
@@ -1330,7 +1330,7 @@ export class HeadscaleGrpcClient {
                 }
             },
             {
-                name: '跳过前8字节手动解析',
+                name: 'Skip first 8 bytes manual parsing',
                 parse: () => {
                     if (responseData.byteLength <= 8) {
                         throw new Error('Response too short for 8-byte skip');
@@ -1341,12 +1341,12 @@ export class HeadscaleGrpcClient {
                 }
             },
             {
-                name: '使用可用数据长度手动解析',
+                name: 'Use available data length manual parsing',
                 parse: () => {
                     if (responseData.byteLength <= 5) {
                         throw new Error('Response too short for frame parsing');
                     }
-                    // 安全计算可用长度，确保不超出边界
+                    // Safely calculate available length, ensure not exceeding boundaries
                     const startOffset = 5;
                     const maxAvailableLength = responseData.byteLength - startOffset;
                     const safeLength = Math.max(0, Math.min(maxAvailableLength, responseData.byteLength - startOffset));
@@ -1361,14 +1361,14 @@ export class HeadscaleGrpcClient {
                 }
             },
             {
-                name: '安全边界检查手动解析',
+                name: 'Safe boundary check manual parsing',
                 parse: () => {
-                    // 更安全的手动解析方法，检查所有边界
+                    // Safer manual parsing method, check all boundaries
                     if (responseData.byteLength < 1) {
                         throw new Error('Empty response');
                     }
 
-                    // 尝试从不同的偏移量开始手动解析
+                    // Try manual parsing from different offsets
                     const offsets = [0, 1, 2, 3, 4, 5, 8, 10, 12, 16];
                     let lastError: Error | null = null;
 
@@ -1379,13 +1379,13 @@ export class HeadscaleGrpcClient {
                             const remainingLength = responseData.byteLength - offset;
                             if (remainingLength <= 0) continue;
 
-                            // 安全地创建数据视图，确保不超出边界
+                            // Safely create data view, ensure not exceeding boundaries
                             const safeLength = Math.min(remainingLength, responseData.byteLength - offset);
                             const data = new Uint8Array(responseData, offset, safeLength);
 
                             debug(`Trying manual parse at offset ${offset}, data length: ${data.length}, safe length: ${safeLength}`);
 
-                            // 额外的边界检查
+                            // Additional boundary check
                             if (data.length === 0) {
                                 debug(`Offset ${offset} resulted in empty data`);
                                 continue;
@@ -1405,14 +1405,14 @@ export class HeadscaleGrpcClient {
                 }
             },
             {
-                name: 'gRPC 错误响应解析',
+                name: 'gRPC error response parsing',
                 parse: () => {
-                    // 尝试解析 gRPC 错误响应
+                    // Try to parse gRPC error response
                     const textDecoder = new TextDecoder('utf-8', { fatal: false });
                     const text = textDecoder.decode(responseData);
 
                     if (text.includes('grpc-status') || text.includes('grpc-message')) {
-                        // 这是一个 gRPC 错误响应，尝试提取错误信息
+                        // This is a gRPC error response, try to extract error information
                         const statusMatch = text.match(/grpc-status[:\s]+(\d+)/);
                         const messageMatch = text.match(/grpc-message[:\s]+([^"'\n\r]+)/);
 
@@ -1426,9 +1426,9 @@ export class HeadscaleGrpcClient {
                 }
             },
             {
-                name: 'HTTP 错误响应检查',
+                name: 'HTTP error response check',
                 parse: () => {
-                    // 检查是否是 HTTP 错误响应
+                    // Check if it's an HTTP error response
                     const textDecoder = new TextDecoder('utf-8', { fatal: false });
                     const text = textDecoder.decode(responseData);
                     if (text.includes('HTTP/') || text.includes('html') || text.includes('error')) {
@@ -1456,7 +1456,7 @@ export class HeadscaleGrpcClient {
 
                 return {
                     success: true,
-                    error: `gRPC 连接成功！找到 ${users.length} 个用户（${method.name}）。`
+                    error: `gRPC connection successful! Found ${users.length} users (${method.name}).`
                 };
             } catch (methodError) {
                 debug(`${method.name} failed:`, methodError instanceof Error ? methodError.message : methodError);
@@ -1464,11 +1464,11 @@ export class HeadscaleGrpcClient {
             }
         }
 
-        // 所有方法都失败了，返回详细的错误信息
+        // All methods failed, return detailed error information
         debug('All parsing methods failed');
         return {
             success: false,
-            error: `gRPC 连接成功，但响应解析失败。原始错误: ${originalError instanceof Error ? originalError.message : 'Unknown'}`
+            error: `gRPC connection successful, but response parsing failed. Original error: ${originalError instanceof Error ? originalError.message : 'Unknown'}`
         };
     }
 
@@ -1635,7 +1635,7 @@ export class HeadscaleGrpcClient {
             return decoder.decode(data);
         } catch (error) {
             debug('Text decoding failed:', error);
-            return '[解码失败]';
+            return '[Decode failed]';
         }
     }
 
@@ -1778,40 +1778,40 @@ export class HeadscaleGrpcClient {
             if (errorMessage.includes('cors')) {
                 return {
                     success: false,
-                    error: '❌ CORS 错误：需要配置 gRPC-Web 代理来处理跨域请求。推荐使用 Envoy 代理。'
+                    error: '❌ CORS error: Need to configure gRPC-Web proxy to handle cross-origin requests. Recommend using Envoy proxy.'
                 };
             }
 
             if (errorMessage.includes('net::err_invalid_http_response')) {
                 return {
                     success: false,
-                    error: '❌ 无效的 HTTP 响应：您正在直接连接到 gRPC 服务器。需要 gRPC-Web 代理（如 Envoy）来转换协议。'
+                    error: '❌ Invalid HTTP response: You are connecting directly to gRPC server. Need gRPC-Web proxy (like Envoy) to convert protocol.'
                 };
             }
 
             if (errorMessage.includes('failed to fetch') || errorMessage.includes('network error')) {
                 return {
                     success: false,
-                    error: '❌ 网络连接失败：检查服务器地址、端口，或配置 gRPC-Web 代理。'
+                    error: '❌ Network connection failed: Check server address, port, or configure gRPC-Web proxy.'
                 };
             }
 
             if (errorMessage.includes('timeout')) {
                 return {
                     success: false,
-                    error: '❌ 连接超时：检查服务器是否可访问，或增加超时时间。'
+                    error: '❌ Connection timeout: Check if server is accessible, or increase timeout duration.'
                 };
             }
 
             return {
                 success: false,
-                error: `❌ 连接错误: ${error.message}`
+                error: `❌ Connection error: ${error.message}`
             };
         }
 
         return {
             success: false,
-            error: '❌ 未知连接错误'
+            error: '❌ Unknown connection error'
         };
     }
 
@@ -1909,11 +1909,11 @@ export class HeadscaleGrpcClient {
             const CreateUserRequest = root.lookupType('headscale.v1.CreateUserRequest');
             const CreateUserResponse = root.lookupType('headscale.v1.CreateUserResponse');
 
-            // 验证 protobuf 定义
+            // Validate protobuf definition
             debug('CreateUserRequest fields:', CreateUserRequest.fields);
             debug('Available fields:', Object.keys(CreateUserRequest.fields));
 
-            // 检查 display_name 字段是否存在
+            // Check if display_name field exists
             const displayNameField = CreateUserRequest.fields.display_name;
             debug('display_name field definition:', displayNameField);
             if (!displayNameField) {
