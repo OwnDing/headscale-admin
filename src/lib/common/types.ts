@@ -209,3 +209,17 @@ export type Deployment = {
 	acceptExitNode: boolean;
 	acceptExitNodeValue: string;
 };
+
+export type GrpcConfig = {
+	serverAddress: string;
+	enableTls: boolean;
+	port: number;
+	timeoutMs: number;
+	apiKey: string;
+};
+
+export type GrpcConnectionStatus = {
+	connected: boolean;
+	lastTested: string | null;
+	error: string | null;
+};

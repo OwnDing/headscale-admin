@@ -5,16 +5,18 @@
 		getTimeDifference,
 		getTimeDifferenceColor,
 		toastSuccess,
+		toastError,
 	} from '$lib/common/funcs';
 
 	import { page } from '$app/state';
 	import { debug } from '$lib/common/debug';
 	import { createPopulateErrorHandler } from '$lib/common/errors';
-	import type { ApiKeyInfo, ExpirationMessage } from '$lib/common/types';
+	import type { ApiKeyInfo, ExpirationMessage, GrpcConfig } from '$lib/common/types';
 	import Page from '$lib/page/Page.svelte';
 	import PageHeader from '$lib/page/PageHeader.svelte';
 	import { getToastStore } from '@skeletonlabs/skeleton';
 	import { refreshApiKey } from '$lib/common/api';
+	import { testGrpcConnection } from '$lib/common/grpc';
 
 	// icons
 	import RawMdiContentSaveOutline from '~icons/mdi/content-save-outline';
@@ -30,6 +32,7 @@
 		apiTtl: number;
 		theme: string;
 		debug: boolean;
+		grpc: GrpcConfig;
 	};
 
 	let settings = $state<Settings>({
@@ -38,6 +41,7 @@
 		apiTtl: App.apiTtl.value / 1000,
 		debug: App.debug.value,
 		theme: App.theme.value,
+		grpc: { ...App.grpcConfig.value },
 	});
 
 	const ToastStore = getToastStore();
@@ -72,6 +76,7 @@
 			App.apiTtl.value = settings.apiTtl * 1000
 			App.debug.value = settings.debug
 			App.theme.value = settings.theme
+		App.grpcConfig.value = { ...settings.grpc }
 			App.apiKeyInfo.value = {
 				expires: '',
 				authorized: null,
@@ -84,6 +89,58 @@
 			await App.populateAll(handler, false);
 		} catch (err) {
 			debug(err);
+		} finally {
+			loading = false;
+		}
+	}
+
+	async function testGrpcConnectionHandler() {
+		loading = true;
+
+		// 先验证配置
+		if (!settings.grpc.serverAddress.trim()) {
+			toastError('请先配置服务器地址', ToastStore);
+			loading = false;
+			return;
+		}
+
+		if (!settings.grpc.apiKey.trim()) {
+			toastError('请先配置 gRPC API Key', ToastStore);
+			loading = false;
+			return;
+		}
+
+		try {
+			const result = await testGrpcConnection(settings.grpc);
+			App.grpcConnectionStatus.value = {
+				connected: result.success,
+				lastTested: new Date().toISOString(),
+				error: result.error || null,
+			};
+
+			if (result.success) {
+				if (result.error) {
+					// 连接成功但有警告
+					toastSuccess(`gRPC 连接成功 (有警告: ${result.error})`, ToastStore);
+				} else {
+					toastSuccess('gRPC 连接测试成功！', ToastStore);
+				}
+			} else {
+				// 提供更具体的错误信息和解决建议
+				let errorMessage = `gRPC 连接失败: ${result.error}`;
+				if (result.error?.includes('Failed to fetch')) {
+					errorMessage += '\n\n可能的解决方案:\n1. 检查服务器地址和端口\n2. 确保配置了 gRPC-Web 代理\n3. 检查防火墙设置';
+				}
+				toastError(errorMessage, ToastStore);
+			}
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			App.grpcConnectionStatus.value = {
+				connected: false,
+				lastTested: new Date().toISOString(),
+				error: errorMessage,
+			};
+			toastError(`gRPC 连接测试失败: ${errorMessage}`, ToastStore);
 		} finally {
 			loading = false;
 		}
@@ -220,6 +277,134 @@
 						<option value={theme}>{theme}</option>
 					{/each}
 				</select>
+			</div>
+
+			<!-- gRPC Configuration Section -->
+			<div class="border-t pt-6">
+				<h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">gRPC Configuration</h3>
+				<p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+					Configure gRPC connection for advanced features like namespace creation.
+				</p>
+
+				<div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg">
+					<h4 class="font-medium text-blue-900 dark:text-blue-100 mb-2">⚠️ 重要提示</h4>
+					<p class="text-sm text-blue-800 dark:text-blue-200 mb-2">
+						Headscale 默认只提供 gRPC API，需要配置 gRPC-Web 代理才能从浏览器访问。
+					</p>
+					<p class="text-sm text-blue-800 dark:text-blue-200">
+						推荐使用 Envoy 或 grpcwebproxy 作为代理。
+						<a href="/grpc-help" class="underline font-medium">查看配置帮助</a> 或
+						<a href="/GRPC_SETUP_GUIDE.md" target="_blank" class="underline">详细指南</a>。
+					</p>
+				</div>
+
+				<div class="space-y-4">
+					<div>
+						<label for="grpc-server" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Server Address</label>
+						<div class="mt-1 flex space-x-2">
+							<input
+								id="grpc-server"
+								class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+								type="text"
+								placeholder="headscale.example.com"
+								disabled={loading}
+								bind:value={settings.grpc.serverAddress}
+							/>
+							<button
+								type="button"
+								class="px-3 py-2 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+								onclick={() => {
+									settings.grpc.serverAddress = 'localhost';
+									settings.grpc.port = 8080;
+									settings.grpc.enableTls = false;
+								}}
+							>
+								本地开发 (Envoy)
+							</button>
+						</div>
+						<p class="mt-1 text-xs text-gray-500">
+							如果使用代理，请输入代理服务器地址（如 Envoy 代理地址）
+						</p>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label for="grpc-port" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Port</label>
+							<input
+								id="grpc-port"
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+								type="number"
+								min="1"
+								max="65535"
+								disabled={loading}
+								bind:value={settings.grpc.port}
+							/>
+						</div>
+
+						<div>
+							<label for="grpc-timeout" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Timeout (ms)</label>
+							<input
+								id="grpc-timeout"
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+								type="number"
+								min="1000"
+								disabled={loading}
+								bind:value={settings.grpc.timeoutMs}
+							/>
+						</div>
+					</div>
+
+					<div class="flex items-center">
+						<input
+							id="grpc-tls"
+							type="checkbox"
+							class="h-4 w-4 text-indigo-600 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600"
+							disabled={loading}
+							bind:checked={settings.grpc.enableTls}
+						/>
+						<label for="grpc-tls" class="ml-2 block text-sm text-gray-700 dark:text-gray-200">
+							Enable TLS
+						</label>
+					</div>
+
+					<div>
+						<label for="grpc-api-key" class="block text-sm font-medium text-gray-700 dark:text-gray-200">gRPC API Key</label>
+						<input
+							id="grpc-api-key"
+							class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+							type="password"
+							placeholder="Enter gRPC API Key"
+							disabled={loading}
+							bind:value={settings.grpc.apiKey}
+						/>
+					</div>
+
+					<div class="flex items-center space-x-2">
+						<button
+							type="button"
+							disabled={loading || !settings.grpc.serverAddress || !settings.grpc.apiKey}
+							class="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+							onclick={testGrpcConnectionHandler}
+						>
+							Test gRPC Connection
+						</button>
+						{#if App.grpcConnectionStatus.value.lastTested}
+							<div class="flex flex-col space-y-1">
+								<span class="text-sm {App.grpcConnectionStatus.value.connected ? 'text-green-600' : 'text-red-600'}">
+									{App.grpcConnectionStatus.value.connected ? '✅ 连接成功' : '❌ 连接失败'}
+								</span>
+								{#if App.grpcConnectionStatus.value.error}
+									<div class="text-xs text-gray-600 dark:text-gray-400 max-w-md">
+										错误: {App.grpcConnectionStatus.value.error}
+									</div>
+								{/if}
+								<div class="text-xs text-gray-500">
+									最后测试: {new Date(App.grpcConnectionStatus.value.lastTested).toLocaleString()}
+								</div>
+							</div>
+						{/if}
+					</div>
+				</div>
 			</div>
 
 			<div class="flex justify-end">
