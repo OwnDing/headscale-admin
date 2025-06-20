@@ -145,6 +145,10 @@ export type Node = {
 	validTags: string[];
 	givenName: string;
 	online: boolean;
+	// Route fields for newer Headscale versions (v0.26.1+)
+	approvedRoutes?: string[];
+	availableRoutes?: string[];
+	subnetRoutes?: string[];
 };
 
 export type ApiNodes = {
