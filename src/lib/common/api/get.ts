@@ -12,19 +12,19 @@ import type {
 } from '$lib/common/types';
 
 export async function getPreAuthKeys(
-	usernames?: string[],
+	userIds?: string[],
 	init?: RequestInit,
 ): Promise<PreAuthKey[]> {
-	if (usernames == undefined) {
-		usernames = (await getUsers(init)).map((u) => u.name);
+	if (userIds == undefined) {
+		userIds = (await getUsers(init)).map((u) => u.id);
 	}
 	const promises: Promise<ApiPreAuthKeys>[] = [];
 	let preAuthKeysAll: PreAuthKey[] = [];
 
-	usernames.forEach(async (username: string) => {
-		if(username != ""){
+	userIds.forEach(async (userId: string) => {
+		if(userId != ""){
 			promises.push(
-				apiGet<ApiPreAuthKeys>(API_URL_PREAUTHKEY + '?user=' + username, init),
+				apiGet<ApiPreAuthKeys>(API_URL_PREAUTHKEY + '?user=' + userId, init),
 			);
 		}
 	});
@@ -36,6 +36,29 @@ export async function getPreAuthKeys(
 
 	await Promise.all(promises);
 	return preAuthKeysAll;
+}
+
+// Helper function to get preauth keys by usernames (for backward compatibility)
+export async function getPreAuthKeysByUsernames(
+	usernames?: string[],
+	init?: RequestInit,
+): Promise<PreAuthKey[]> {
+	if (usernames == undefined) {
+		return getPreAuthKeys(undefined, init);
+	}
+
+	// Get all users to map usernames to user IDs
+	const users = await getUsers(init);
+	const userIds: string[] = [];
+
+	usernames.forEach((username: string) => {
+		const user = users.find(u => u.name === username);
+		if (user) {
+			userIds.push(user.id);
+		}
+	});
+
+	return getPreAuthKeys(userIds, init);
 }
 
 type GetUserOptions = 
