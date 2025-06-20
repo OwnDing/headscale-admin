@@ -88,9 +88,15 @@
                 max_age: "1728000"
                 expose_headers: custom-header-1,grpc-status,grpc-message
           http_filters:
-          - name: envoy.filters.http.grpc_web
-          - name: envoy.filters.http.cors
-          - name: envoy.filters.http.router
+          - name: envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
+          - name: envoy.extensions.filters.http.cors.v3.Cors
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+          - name: envoy.extensions.filters.http.router.v3.Router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
   clusters:
   - name: headscale_service
     connect_timeout: 0.25s
@@ -264,7 +270,7 @@
 					<h4 class="font-medium text-blue-900 dark:text-blue-100 mb-2">启动步骤:</h4>
 					<ol class="list-decimal list-inside space-y-1 text-sm text-blue-800 dark:text-blue-200">
 						<li>将上面的配置保存为 <code>envoy.yaml</code></li>
-						<li>运行: <code>docker run -d -p {envoyConfig.proxyPort}:{envoyConfig.proxyPort} -v $(pwd)/envoy.yaml:/etc/envoy/envoy.yaml envoyproxy/envoy:v1.22-latest</code></li>
+						<li>运行: <code>docker run -d -p {envoyConfig.proxyPort}:{envoyConfig.proxyPort} -v $(pwd)/envoy.yaml:/etc/envoy/envoy.yaml envoyproxy/envoy:v1.28-latest</code></li>
 						<li>在设置中配置: 服务器地址 <code>localhost</code>, 端口 <code>{envoyConfig.proxyPort}</code>, TLS 禁用</li>
 					</ol>
 				</div>
@@ -277,42 +283,7 @@
 
 			<div class="space-y-6">
 				<div>
-					<h3 class="text-lg font-medium mb-2">方法 2: 使用 Nginx 代理 (您当前的方案)</h3>
-					<div class="bg-gray-100 dark:bg-gray-700 p-4 rounded text-sm">
-						<pre class="whitespace-pre-wrap">{`server {
-    listen 50443;
-    server_name localhost;
-
-    # CORS 配置
-    add_header 'Access-Control-Allow-Origin' '*' always;
-    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-    add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,grpc-timeout,x-grpc-web' always;
-    add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range,grpc-status,grpc-message' always;
-
-    # 处理 OPTIONS 预检请求
-    if ($request_method = 'OPTIONS') {
-        add_header 'Access-Control-Allow-Origin' '*';
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,grpc-timeout,x-grpc-web';
-        add_header 'Access-Control-Max-Age' 1728000;
-        add_header 'Content-Type' 'text/plain; charset=utf-8';
-        add_header 'Content-Length' 0;
-        return 204;
-    }
-
-    location / {
-        grpc_pass grpc://${envoyConfig.headscaleServer}:${envoyConfig.headscalePort};
-        grpc_set_header Authorization $http_authorization;
-    }
-}`}</pre>
-					</div>
-					<p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-						使用您当前的 Nginx 配置，在设置中使用: localhost:50443
-					</p>
-				</div>
-
-				<div>
-					<h3 class="text-lg font-medium mb-2">方法 3: 使用 grpcwebproxy</h3>
+					<h3 class="text-lg font-medium mb-2">方法 2: 使用 grpcwebproxy</h3>
 					<div class="bg-gray-100 dark:bg-gray-700 p-4 rounded text-sm">
 						<pre class="whitespace-pre-wrap">grpcwebproxy \\
   --backend_addr={envoyConfig.headscaleServer}:{envoyConfig.headscalePort} \\
