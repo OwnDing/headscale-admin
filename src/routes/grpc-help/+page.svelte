@@ -51,7 +51,7 @@
 
 	// Envoy configuration generator
 	let envoyConfig = $state({
-		headscaleServer: App.grpcConfig.value.serverAddress || 'vpn.ownding.xyz',
+		headscaleServer: App.grpcConfig.value.serverAddress || 'example.com',
 		headscalePort: 50443,
 		proxyPort: 8080
 	});
@@ -228,7 +228,7 @@
 							class="input w-full"
 							type="text"
 							bind:value={envoyConfig.headscaleServer}
-							placeholder="vpn.ownding.xyz"
+							placeholder="example.com"
 						/>
 					</div>
 					<div>

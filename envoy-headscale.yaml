@@ -52,5 +52,5 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: vpn.ownding.xyz
+                address: example.com
                 port_value: 50443

@@ -14,7 +14,7 @@ function analyzeEnvoyResponse() {
     console.log('Your Envoy config shows:');
     console.log('- gRPC-Web filter enabled');
     console.log('- CORS properly configured');
-    console.log('- Proxying to vpn.ownding.xyz:50443');
+    console.log('- Proxying to example.com:50443');
     console.log('- HTTP/2 protocol options enabled');
     
     console.log('\n📦 Expected Response Structure:');
