@@ -68,7 +68,7 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: vpn.ownding.xyz
+                address: example.com
                 port_value: 50443
 ```
 
@@ -106,10 +106,10 @@ grpcwebproxy \
 **Test connection**:
 ```bash
 # Test basic connection
-telnet vpn.ownding.xyz 50443
+telnet example.com 50443
 
 # Or use curl to test HTTP connection
-curl -v http://vpn.ownding.xyz:8080
+curl -v http://example.com:8080
 ```
 
 ### 3. CORS Issues
