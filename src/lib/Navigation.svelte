@@ -12,7 +12,7 @@
 	import RawMdiBug from '~icons/mdi/bug';
 
 	// import { ApiKeyInfoStore, ApiKeyStore, hasValidApi } from './Stores';
-	import type { Component } from 'svelte';
+	import { onMount, type Component } from 'svelte';
 	import { page } from '$app/state';
 	import { App } from '$lib/States.svelte';
 
@@ -53,14 +53,7 @@
 		{ path: '/grpc-debug', name: 'gRPC Debug', logo: RawMdiBug },
 	].filter((p) => p != undefined);
 
-	function getPages(pages: Page[]): Page[] {
-		if (typeof window === 'undefined') {
-			return [];
-		}
-
-		return App.hasValidApi ? pages : pages.slice(-1);
-	};
-	const pages = $derived(getPages(allPages));
+	const pages = $derived.by(() => App.hasValidApi ? allPages : allPages.slice(-1));
 </script>
 
 <nav class="list-nav pt-0">

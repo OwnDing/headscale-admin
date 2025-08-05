@@ -78,7 +78,7 @@ export type ApiPreAuthKey = {
 
 export class PreAuthKey {
 	constructor(
-		public user: string,
+		public user: User,
 		public id: string,
 		public key: string,
 		public reusable: boolean,

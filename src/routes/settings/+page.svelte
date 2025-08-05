@@ -25,6 +25,7 @@
 	import RawMdiEyeOff from '~icons/mdi/eye-off-outline';
 
 	import { App } from '$lib/States.svelte';
+	import { goto } from '$app/navigation';
 
 	type Settings = {
 		apiUrl: string;
@@ -71,7 +72,6 @@
 				settings.apiUrl = page.url.origin
 			}
 			App.apiUrl.value = settings.apiUrl
-			debug("API URL is set to:", App.apiUrl.value)
 			App.apiKey.value = settings.apiKey
 			App.apiTtl.value = settings.apiTtl * 1000
 			App.debug.value = settings.debug
